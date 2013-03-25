@@ -1,11 +1,13 @@
 import numpy as np
 
-def render(array,size,probability):
+DEFAULT_PROBABILITY = np.random.random()
+
+def render(array,size,alive_check):
 	representation = ''
 
 	for j in range(size):
 		for i in range(size):
-			if array[i,j]<=probability:
+			if alive_check(array[i,j]):
 				representation = representation + "X"
 			else:
 				representation = representation + "."
@@ -13,12 +15,23 @@ def render(array,size,probability):
 
 	print representation
 
-def random_board(size):
-	probability = np.random.random()
-	board = np.random.random((size,size))
-	print probability, board
-	render(board,size,probability)
+def check_prob(cell_value,probability=DEFAULT_PROBABILITY):
+	if cell_value <= probability:
+		return True
+	return False
 
+def random_board(size):
+	board = np.random.random((size,size))
+	print DEFAULT_PROBABILITY, board
+	render(board,size,check_prob)
+
+def will_live(cell_alive,alive_neighbors):
+	if alive_neighbors == 3:
+		return True
+	else: 
+		if cell_alive and alive_neighbors ==2:
+			return True
+	return False
 
 
 if __name__ == '__main__':
