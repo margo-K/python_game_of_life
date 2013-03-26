@@ -2,7 +2,8 @@ import numpy as np
 from time import sleep
 import os
 import curses
-stdscr = curses.initscr()
+# stdscr = curses.initscr()
+
 
 DEFAULT_SIZE = 100
 
@@ -36,15 +37,17 @@ class Game:
 				return True
 		return False 
 
-	def print_board(self,highlight=False): ## could map and join
-		stdscr.refresh()
+	def __str__(self):
 		string_board = ''
 		for j in range(self.board_dimension):
 			for i in range(self.board_dimension):
 				string_board+=self.represent_cell(i,j)
 			string_board+="\n"
-		print string_board+"\r"
+		return string_board+"\r"
 
+	def print_board(self,highlight=False): ## could map and join
+		print self
+	
 	def represent_cell(self,i,j):
 		if self.board[i,j] ==1:
 			return "*"
@@ -64,12 +67,6 @@ class Game:
 		neighbors_list = self.neighbors(i,j)
 		alive = [self.board[element[0],element[1]] for element in neighbors_list]
 		return sum(alive)
-
-# class Cell:
-# 	def __init__(self,x,y):
-# 		self.x = x
-# 		self.y = y
-# 	def 
 
 if __name__ == '__main__':
 	g = Game()
