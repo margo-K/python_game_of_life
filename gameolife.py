@@ -2,20 +2,42 @@ import numpy as np
 from time import sleep
 import os
 import curses
+import unittest
 # stdscr = curses.initscr()
 
 
 DEFAULT_SIZE = 100
 
+offsets = [-1,0,1]
+cartesian_product = [(x,y) for x in offsets for y in offsets if not (y==0 and x==0)]
+
+
+
 def random_board(size):
 	return np.random.randint(2,size=(size,size))
 
+def blinker_board():
+	return np.array([(0,0,0),(1,1,1),(0,0,0)])
+
+
+
 class Game:
-	def __init__(self,size=DEFAULT_SIZE):
-		self.board = random_board(size=size)
+	def __init__(self,board):
+		self.board = board
 		self.board_dimension = self.board.shape[0]
 		print "The board dimension is {}".format(self.board_dimension)
 		self.print_board()
+
+	@classmethod
+	def random(cls,size=DEFAULT_SIZE):
+		board=random_board(size)
+		return cls(board)
+
+	def __eq__(self,other):
+		if isinstance(other,self.__class__):
+			return (self.board==other.board).all()
+		else:
+			return False
 
 	def update_board(self,alive_condition=None):
 		if alive_condition == None:
@@ -26,7 +48,7 @@ class Game:
 				if alive_condition(i,j):
 					new_array[i,j]=1
 		self.board = new_array
-		self.print_board()
+		return self
 
 	def conway_condition(self,i,j): ## should perhaps be outside of the game class
 		current_board = self.board
@@ -50,17 +72,14 @@ class Game:
 	
 	def represent_cell(self,i,j):
 		if self.board[i,j] ==1:
-			return "*"
+			return "X"
 		else:
-			return " "
+			return "."
 
 	def neighbors(self,i,j,max_value=None):
 		if max_value == None:
 			max_value = self.board_dimension
-		count_alive = 0
-		offsets = [-1,0,1]
-		cartesian_product = [(x,y) for x in offsets for y in offsets if not (y==0 and x==0)]
-		neighbor_coordinates = [(x+i,y+j) for (x,y) in cartesian_product if x+i<max_value and y+j<max_value]
+		neighbor_coordinates = [(x+i,y+j) for (x,y) in cartesian_product if (0<=(x+i)<max_value) and (0<=(y+j)<max_value)]
 		return neighbor_coordinates
 
 	def alive_neighbors(self,i,j):
@@ -68,7 +87,15 @@ class Game:
 		alive = [self.board[element[0],element[1]] for element in neighbors_list]
 		return sum(alive)
 
+
+class GameTest(unittest.TestCase):
+	def test_blinker(self):
+		board1 = blinker_board()
+		board2 = blinker_board()
+		g = Game(board1) # game in a glider state
+		g2 = Game(board2)
+		g2.update_board().update_board()
+		self.assertEquals(g,g2)
+
 if __name__ == '__main__':
-	g = Game()
-	while True:
-		g.update_board()
+	unittest.main()
