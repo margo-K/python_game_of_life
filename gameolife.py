@@ -1,69 +1,76 @@
 import numpy as np
 from time import sleep
 
-SIZE = 100
+DEFAULT_SIZE = 100
 
-
-def is_alive(i,j,board):
-	current_board = board
-	cell_alive = current_board[i,j]
-	num_alive = alive_neighbors(i,j,current_board)
-
-	if num_alive == 3:
-		return True
-	else: 
-		if cell_alive and num_alive ==2:
-			return True
-	return False
-
-def update_board(old_board,size=SIZE,alive_checker=is_alive):
-	new_array = np.zeros((size,size))
-	for j in range(size):
-		for i in range(size):
-			if alive_checker(i,j,old_board):
-				new_array[i,j]=1
-	return new_array
-
-def print_to_screen(board_array,size=SIZE,highlight=False):
-	representation = ''
-	for j in range(size):
-		for i in range(size):
-			if board_array[i,j]==1:
-				representation = representation + "X"
-			else:
-				representation = representation + "."
-		representation = representation + "\n"
-	if highlight==True:
-		representation = '033[94m'+ representation+'\033[0m'
-	print representation
-
-def neighbors(i,j):
-	neighbors = []
-	count_alive = 0
-	for y_offset in [-1,0,1]:
-		for x_offset in [-1,0,1]:
-			neighbor_x,neighbor_y = i+x_offset,j+y_offset
-			if neighbor_x not in range(SIZE) or neighbor_y not in range(SIZE):
-				pass
-			else:
-				neighbors.append((neighbor_x,neighbor_y))
-	neighbors.remove((i,j))
-	return neighbors
-
-def alive_neighbors(i,j,board):
-	neighbors_list = neighbors(i,j)
-	alive = [board[element[0],element[1]] for element in neighbors_list]
-	return sum(alive)
-
-def random_board(size=SIZE):
-	SIZE = size
+def random_board(size=DEFAULT_SIZE):
 	return np.random.randint(2,size=(size,size))
 
+
+class Game:
+	def __init__(self,size=DEFAULT_SIZE):
+		self.size = size
+		self.board = random_board()
+		self.print_board()
+
+	def update_board(self,alive_condition=None):
+		if alive_condition == None:
+			alive_condition = self.conway_condition
+		new_array = np.zeros((self.size,self.size))
+		for j in range(self.size):
+			for i in range(self.size):
+				if alive_condition(i,j):
+					new_array[i,j]=1
+		self.board = new_array
+		self.print_board()
+
+	def conway_condition(self,i,j): ## should perhaps be outside of the game class
+		current_board = self.board
+		if self.alive_neighbors(i,j) == 3:
+			return True
+		else: 
+			if current_board[i,j]==1 and self.alive_neighbors(i,j) ==2: ## aka current_board[i,j]+num_alive == 3
+				return True
+		return False 
+
+	def print_board(self,size=DEFAULT_SIZE,highlight=False): ## could map and join
+		string_board = ''
+		for j in range(size):
+			for i in range(size):
+				string_board+=self.represent_cell(i,j)
+			string_board+="\n"
+		# if highlight==True:
+		# 	representation = '033[94m'+ representation+'\033[0m'
+		print string_board
+
+	def represent_cell(self,i,j):
+		if self.board[i,j] ==1:
+			return "*"
+		else:
+			return " "
+
+	def neighbors(self,i,j,max_value=None):
+		if max_value == None:
+			max_value = self.size
+		neighbors_list = []
+		count_alive = 0
+		for y_offset in [-1,0,1]:
+			for x_offset in [-1,0,1]:
+				neighbor_x,neighbor_y = i+x_offset,j+y_offset
+				if neighbor_x not in range(max_value) or neighbor_y not in range(max_value):
+					pass
+				else:
+					neighbors_list.append((neighbor_x,neighbor_y))
+		neighbors_list.remove((i,j))
+		return neighbors_list
+
+	def alive_neighbors(self,i,j):
+		neighbors_list = self.neighbors(i,j)
+		alive = [self.board[element[0],element[1]] for element in neighbors_list]
+		return sum(alive)
+
+
 if __name__ == '__main__':
-	current_board = random_board()
+	g = Game()
 	while True:
-		print_to_screen(current_board)
-		new_board = update_board(current_board)
-		current_board = new_board
-		
-	
+		g.update_board()
