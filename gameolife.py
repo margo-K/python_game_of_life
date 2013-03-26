@@ -1,11 +1,13 @@
 import numpy as np
 from time import sleep
+import os
+import curses
+stdscr = curses.initscr()
 
 DEFAULT_SIZE = 100
 
 def random_board(size):
 	return np.random.randint(2,size=(size,size))
-
 
 class Game:
 	def __init__(self,size=DEFAULT_SIZE):
@@ -35,12 +37,13 @@ class Game:
 		return False 
 
 	def print_board(self,highlight=False): ## could map and join
+		stdscr.refresh()
 		string_board = ''
 		for j in range(self.board_dimension):
 			for i in range(self.board_dimension):
 				string_board+=self.represent_cell(i,j)
 			string_board+="\n"
-		print string_board
+		print string_board+"\r"
 
 	def represent_cell(self,i,j):
 		if self.board[i,j] ==1:
